@@ -23,7 +23,7 @@ if (window.location.pathname.endsWith("admin.html")) {
 }
 
 // ======= Variables globales =======
-const API_URL = "https://script.google.com/macros/s/AKfycbz844gDFQvviGW6SATD_8ub6tW2ltv6uXKXDqF5WcrqThukcuJTsr4fLvLnFFjS5Yv5/exec"; // Reemplaza con tu URL real
+const API_URL = "https://sheetdb.io/api/v1/u9lik4n7siykn"; // Reemplaza con tu URL real
 
 const taskFilter = document.getElementById("taskFilter");
 const dataBody = document.getElementById("dataBody");
