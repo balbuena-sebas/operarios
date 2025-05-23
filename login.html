@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ingreso al Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="bg-light d-flex align-items-center justify-content-center" style="height: 100vh;">
+  <div class="card p-4 shadow" style="min-width: 300px;">
+    <h4 class="mb-3 text-center">Ingresar al Panel de Administración</h4>
+    <input type="password" id="clave" class="form-control mb-3" placeholder="Ingrese clave" autofocus />
+    <button onclick="login()" class="btn btn-primary w-100">Ingresar</button>
+    <div id="error" class="text-danger mt-2 text-center" style="display:none;">Clave incorrecta</div>
+  </div>
+
+  <script>
+    function login() {
+      const clave = document.getElementById("clave").value.trim();
+      if (clave === "admin123") {  // Cambiar por tu clave segura
+        sessionStorage.setItem("autenticado", "true");
+        window.location.href = "admin.html";
+      } else {
+        const err = document.getElementById("error");
+        err.style.display = "block";
+        setTimeout(() => err.style.display = "none", 3000);
+      }
+    }
+  </script>
+</body>
+</html>
