@@ -124,7 +124,7 @@ function submitForm(e) {
 }
 
 function sendData(data) {
-  fetch("https://script.google.com/macros/s/AKfycbz844gDFQvviGW6SATD_8ub6tW2ltv6uXKXDqF5WcrqThukcuJTsr4fLvLnFFjS5Yv5/exec", {
+  fetch("https://sheetdb.io/api/v1/u9lik4n7siykn", {
     method: "POST",
     body: JSON.stringify(data),
     headers: {
