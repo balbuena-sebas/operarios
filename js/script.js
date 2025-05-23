@@ -28,47 +28,21 @@ function renderTaskForm() {
   `;
 
   if (task === "clasificacion") {
-    html += `
-      <div class="mb-3">
-        <label class="form-label">Cantidad de pallets preparados</label>
-        <input type="number" class="form-control" id="pallets" required>
-      </div>
-    `;
+    html += `<div class="mb-3"><label class="form-label">Cantidad de pallets</label><input type="number" class="form-control" id="pallets" required></div>`;
   }
 
   if (task === "armado") {
-    html += `
-      <div class="mb-3">
-        <label class="form-label">Cliente del pedido</label>
-        <input type="text" class="form-control" id="cliente" required>
-      </div>
-    `;
+    html += `<div class="mb-3"><label class="form-label">Cliente</label><input type="text" class="form-control" id="cliente" required></div>`;
   }
 
   if (task === "carga") {
-    html += `
-      <div class="mb-3">
-        <label class="form-label">Chofer</label>
-        <input type="text" class="form-control" id="chofer" required>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Faltantes (cantidad y descripción)</label>
-        <textarea class="form-control" id="faltantes" rows="2"></textarea>
-      </div>
-    `;
+    html += `<div class="mb-3"><label class="form-label">Chofer</label><input type="text" class="form-control" id="chofer" required></div>
+             <div class="mb-3"><label class="form-label">Faltantes</label><textarea class="form-control" id="faltantes" rows="2"></textarea></div>`;
   }
 
   if (task === "descarga") {
-    html += `
-      <div class="mb-3">
-        <label class="form-label">Cliente</label>
-        <input type="text" class="form-control" id="clienteDescarga" required>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Foto del Remito</label>
-        <input type="file" accept="image/*" capture="environment" class="form-control" id="remitoFoto" required>
-      </div>
-    `;
+    html += `<div class="mb-3"><label class="form-label">Cliente</label><input type="text" class="form-control" id="clienteDescarga" required></div>
+             <div class="mb-3"><label class="form-label">Foto del Remito</label><input type="file" accept="image/*" capture="environment" class="form-control" id="remitoFoto" required></div>`;
   }
 
   html += `<button type="submit" class="btn btn-primary mt-3">Finalizar y Enviar</button>`;
@@ -82,65 +56,34 @@ function submitForm(e) {
   const endTime = new Date();
 
   const formData = {
-    task,
     operario: document.getElementById("operario").value,
-    start: startTime.toISOString(),
-    end: endTime.toISOString()
+    tarea: task,
+    fecha: new Date().toLocaleDateString(),
+    horaInicio: startTime.toLocaleTimeString(),
+    horaFin: endTime.toLocaleTimeString(),
+    duracion: ((endTime - startTime) / 60000).toFixed(2),
+    pallets: document.getElementById("pallets")?.value || "",
+    cliente: document.getElementById("cliente")?.value || document.getElementById("clienteDescarga")?.value || "",
+    chofer: document.getElementById("chofer")?.value || "",
+    faltantes: document.getElementById("faltantes")?.value || "",
+    descargoA: task === "descarga" ? "Sí" : "",
   };
 
-  if (task === "clasificacion") {
-    formData.pallets = document.getElementById("pallets").value;
+  const fileInput = document.getElementById("remitoFoto");
+  const file = fileInput?.files[0];
+
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function () {
+      formData.fotoBase64 = reader.result;
+      google.script.run.withSuccessHandler(() => alert("Datos enviados")).doPostClient(formData);
+    };
+    reader.readAsDataURL(file);
+  } else {
+    google.script.run.withSuccessHandler(() => alert("Datos enviados")).doPostClient(formData);
   }
 
-  if (task === "armado") {
-    formData.cliente = document.getElementById("cliente").value;
-  }
-
-  if (task === "carga") {
-    formData.chofer = document.getElementById("chofer").value;
-    formData.faltantes = document.getElementById("faltantes").value;
-  }
-
-  if (task === "descarga") {
-    formData.clienteDescarga = document.getElementById("clienteDescarga").value;
-    const remitoInput = document.getElementById("remitoFoto");
-    const file = remitoInput.files[0];
-
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function () {
-        formData.remitoFoto = reader.result;
-        sendData(formData);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      sendData(formData);
-    }
-
-    return;
-  }
-
-  sendData(formData);
-}
-
-function sendData(data) {
-  fetch("https://script.google.com/macros/s/AKfycbz844gDFQvviGW6SATD_8ub6tW2ltv6uXKXDqF5WcrqThukcuJTsr4fLvLnFFjS5Yv5/exec", {
-    method: "POST",
-    body: JSON.stringify(data),
-    headers: {
-      "Content-Type": "application/json"
-    }
-  })
-    .then(res => res.json())
-    .then(response => {
-      alert("Datos enviados correctamente.");
-      document.getElementById("taskForm").innerHTML = "";
-      document.getElementById("taskType").value = "";
-    })
-    .catch(error => {
-      alert("Error al enviar los datos.");
-      console.error(error);
-    });
+  document.getElementById("taskForm").innerHTML = "";
 }
 
 document.addEventListener("DOMContentLoaded", () => {
