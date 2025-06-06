@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-app.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-firestore.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.8.1/firebase-auth.js";
 
 // Configuración de Firebase
 const firebaseConfig = {
@@ -14,6 +15,32 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+
+// ✅ INICIO DE SESIÓN ANÓNIMO + PROTECCIÓN CON CLAVE
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    const clave = sessionStorage.getItem("claveAdmin");
+    if (clave !== "admin123") {
+      const input = prompt("Ingrese la clave de administrador:");
+      if (input === "admin123") {
+        sessionStorage.setItem("claveAdmin", "admin123");
+        cargarDatos();
+      } else {
+        alert("Clave incorrecta. No tienes acceso.");
+        window.location.href = "login.html"; // O redirige a otra página
+      }
+    } else {
+      cargarDatos();
+    }
+  } else {
+    // Si no está logueado, hacemos login anónimo
+    signInAnonymously(auth).catch((error) => {
+      console.error("Error al iniciar sesión anónima:", error);
+      alert("No se pudo iniciar sesión.");
+    });
+  }
+});
 
 const tableBody = document.querySelector("#dataTable tbody");
 const filtroTarea = document.getElementById("filtroTarea");
@@ -23,9 +50,7 @@ const filtroMes = document.getElementById("filtroMes");
 const btnExport = document.getElementById("btnExport");
 const rankingList = document.getElementById("rankingList");
 
-// Canvas para gráficos (los creamos dinámicamente)
 let duracionChart, promedioChart;
-
 let dataGlobal = [];
 
 async function cargarDatos() {
@@ -36,13 +61,10 @@ async function cargarDatos() {
     id: doc.id,
     ...doc.data()
   }));
-  console.log(snapshot.docs.map(doc => doc.data()));
-  console.log("Datos cargados de Firebase:", dataGlobal);  // Para ver datos en consola
 
   cargarFiltrosOperarios();
   filtrarYMostrarDatos();
 }
-
 
 function cargarFiltrosOperarios() {
   const operarios = [...new Set(dataGlobal.map(item => item.operario).filter(Boolean))];
@@ -109,7 +131,6 @@ function renderizarRanking(data) {
 }
 
 function renderizarGraficos(data) {
-  // Preparamos datos para gráficos
   const duracionPorOperario = {};
   const cantidadPorOperario = {};
 
@@ -124,18 +145,15 @@ function renderizarGraficos(data) {
   const duracionData = labels.map(op => duracionPorOperario[op]);
   const promedioData = labels.map(op => duracionPorOperario[op] / cantidadPorOperario[op]);
 
-  // Si no hay canvas, los agregamos (solo una vez)
   if (!document.getElementById("duracionChart")) {
     const cont = document.createElement("div");
     cont.className = "mb-5";
-
     cont.innerHTML = `
       <h4>Duración total por operario (minutos)</h4>
       <canvas id="duracionChart" style="max-width: 700px; margin-bottom: 40px;"></canvas>
       <h4>Promedio de duración por operario (minutos)</h4>
       <canvas id="promedioChart" style="max-width: 700px;"></canvas>
     `;
-
     document.querySelector(".container").appendChild(cont);
   }
 
@@ -202,5 +220,3 @@ function filtrarDatosParaExportar() {
 }
 
 [filtroTarea, filtroOperario, filtroFecha, filtroMes].forEach(el => el.addEventListener("change", filtrarYMostrarDatos));
-
-window.onload = cargarDatos;
